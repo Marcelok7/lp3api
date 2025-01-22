@@ -1,0 +1,58 @@
+﻿@model List<OportoOlympicsWebApplication.Models.Client>
+
+@{
+    ViewData["Title"] = "Dashboard";
+    var userName = ViewData["UserName"] as string;
+    var id = ViewData["UserId"] as string;
+}
+
+<h1>Welcome, @userName!</h1>
+
+<form method="post" action="@Url.Action("UpdatePassword", "Client")" style="display:inline;">
+    <input type="hidden" name="id" value="@id" />
+    <input type="password" name="newPassword" placeholder="Enter new password" required />
+    <button type="submit">Change Password</button>
+</form>
+
+@if (TempData["Message"] != null)
+{
+    <p class="alert alert-success">@TempData["Message"]</p>
+}
+
+@if (TempData["Error"] != null)
+{
+    <p class="alert alert-danger">@TempData["Error"]</p>
+}
+
+<h2>Get All Clients</h2>
+
+@if (Model != null && Model.Count > 0)
+{
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>GroupId</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Active</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var client in Model)
+            {
+                <tr>
+                    <td>@client.Id</td>
+                    <td>@client.GroupId</td>
+                    <td>@client.Name</td>
+                    <td>@client.Email</td>
+                    <td>@client.Active</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No clients available.</p>
+}

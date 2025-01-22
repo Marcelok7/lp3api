@@ -1,0 +1,31 @@
+﻿@{
+    ViewData["Title"] = "Client List";
+    var clients = (List<dynamic>)Model;
+}
+<h2>Registered clients</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>GroupId</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Active</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var client in clients)
+        {
+            <tr>
+                <td>@client.Id</td>
+                <td>@client.GroupId</td>
+                <td>@client.Email</td>
+                <td>@client.Active</td>
+                <td>
+                    <a href="/Client/BanClient?id=@client.id">Ban</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<a href="/">Back to the beginning</a>

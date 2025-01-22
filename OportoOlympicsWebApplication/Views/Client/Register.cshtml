@@ -1,0 +1,44 @@
+﻿@{
+    ViewData["Title"] = "Client Registration";
+}
+
+<h2>Register as a Client</h2>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Create an Account</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-controller="Client" asp-action="Register" method="post">
+                        <div class="form-group mb-3">
+                            <label for="nameString">Full Name</label>
+                            <input type="text" class="form-control" id="nameString" name="nameString" required />
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="emailString">Email Address</label>
+                            <input type="email" class="form-control" id="emailString" name="emailString" required />
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="passwordString">Password</label>
+                            <input type="password" class="form-control" id="passwordString" name="passwordString" required />
+                        </div>
+                        <div class="form-group text-center">
+                            <button type="submit" class="btn btn-primary">Register</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            @if (TempData["Message"] != null)
+            {
+                <div class="alert alert-success mt-3">@TempData["Message"]</div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger mt-3">@TempData["Error"]</div>
+            }
+        </div>
+    </div>
+</div>
