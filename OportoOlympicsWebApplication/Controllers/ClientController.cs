@@ -19,11 +19,18 @@ namespace OportoOlympics.Controllers
             _logger = logger;
         }
 
-        // GET: /Client/Login
+        // GET: Client/Login/
         [HttpGet]
-        public IActionResult Login()
+        public IActionResult LoginPage()
         {
             return View("Login");
+        }
+
+        // GET: Client/Account/
+        [HttpGet]
+        public IActionResult Account()
+        {
+            return View("Account");
         }
 
         // POST: Client/Login/
@@ -56,40 +63,52 @@ namespace OportoOlympics.Controllers
                 }
 
                 TempData["Error"] = "Invalid login credentials.";
-                return RedirectToAction("Login");
+                return RedirectToAction("LoginPage");
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"Login error: {ex.Message}";
-                return RedirectToAction("Login");
+                return RedirectToAction("LoginPage");
             }
+        }
+
+        // Método de Logout
+        [HttpPost]
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Remove("UserId");
+            HttpContext.Session.Remove("UserName");
+            HttpContext.Session.Remove("UserEmail");
+            TempData["Message"] = "You have been logged out.";
+            return RedirectToAction("LoginPage");
         }
 
         // GET: /Client/Register
         [HttpGet]
         public IActionResult Register()
         {
-            return View();
+            return View("Register");
         }
 
-        // POST: /Client/Register
-        [HttpPost]
+        // POST: Register Client 
         public async Task<IActionResult> Register(string name, string email, string password)
         {
             var clientData = new { Name = name, Email = email, Password = password };
-            var endpoint = "client";
+            var endpoint = "client/";
 
             try
             {
                 await _apiService.PostAsync<object>(endpoint, clientData);
 
-                TempData["Message"] = "Registration successful. Check your email for the password.";
-                return RedirectToAction("Login");
+                TempData["Message"] = "Registration successful! You will be redirected to the login page.";
+
+                _logger.LogInformation("Register successful: {email}", email);
+
+                return RedirectToAction("LoginPage");
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"Error registering the client: {ex.Message}";
-
                 return View();
             }
         }
@@ -98,94 +117,21 @@ namespace OportoOlympics.Controllers
         [HttpGet]
         public async Task<IActionResult> Dashboard()
         {
-            var userName    = HttpContext.Session.GetString("UserName");
-            var userId      = HttpContext.Session.GetString("UserId");
-
-            if (string.IsNullOrEmpty(userName))
-            {
-                TempData["Error"] = "You must be logged in to access the Dashboard.";
-                return RedirectToAction("LoginPage");
-            }
-
-            try
-            {
-                var endpoint = "client";
-                var result = await _apiService.GetAsync<dynamic>(endpoint);
-
-                if (result.Status == "OK" && result.Clients != null)
-                {
-                    var clients = JsonConvert.DeserializeObject<List<Client>>(JsonConvert.SerializeObject(result.Clients));
-
-                    ViewData["UserName"]    = userName;
-                    ViewData["UserId"]      = userId;
-
-                    return View(clients);
-                }
-
-                TempData["Error"] = "Failed to fetch clients.";
-                ViewData["UserName"] = userName;
-                return View(new List<Client>());
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Error loading dashboard: {ex.Message}";
-                ViewData["UserName"] = userName;
-                return View(new List<Client>());
-            }
+            return await GetGames();
         }
 
-
-        // GET: /Client/All
-        [HttpGet]
-        public async Task<IActionResult> GetAllClients()
-        {
-            var endpoint = "client";
-
-            try
-            {
-                var clients = await _apiService.GetAsync<List<object>>(endpoint);
-
-                return View("ClientList", clients);
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Error fetching clients: {ex.Message}";
-                return View("Error");
-            }
-        }
-
-        // POST: /Client/Ban
+        // PUT: /Client/UpdatePassword
         [HttpPost]
-        public async Task<IActionResult> BanClient(int id)
+        public async Task<IActionResult> UpdatePassword(string newPassword)
         {
-            var updateData = new { Active = false };
-            var endpoint = $"client/{id}";
+            var id = HttpContext.Session.GetString("UserId");
 
-            try
-            {
-                await _apiService.PutAsync<object>(endpoint, updateData);
-
-                TempData["Message"] = "Client successfully banned.";
-                return RedirectToAction("GetAllClients");
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Error banning the client: {ex.Message}";
-                return View("Error");
-            }
-        }
-
-        // POST: /Client/UpdatePassword
-        [HttpPost]
-        public async Task<IActionResult> UpdatePassword(int id, string newPassword)
-        {
             var updateData = new { Password = newPassword };
             var endpoint = $"client/{id}";
 
-            _logger.LogInformation("id: " , id);
-            _logger.LogInformation("newPassword: ", newPassword);
-
-            _logger.LogInformation("endpoint: ", endpoint);
+            _logger.LogInformation("id: {id}", id);
+            _logger.LogInformation("newPassword: {newPassword}", newPassword);
+            _logger.LogInformation("endpoint: {endpoint}", endpoint);
 
             try
             {
@@ -201,18 +147,22 @@ namespace OportoOlympics.Controllers
             }
         }
 
-        // POST: /Client/Delete
+        // DELETE: /Client/DeleteAccount
         [HttpPost]
-        public async Task<IActionResult> DeleteAccount(int id)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAccount()
         {
+            var id = HttpContext.Session.GetString("UserId");
+
             var endpoint = $"client/{id}";
 
-            try { 
-            
+            try
+            {
+
                 await _apiService.DeleteAsync(endpoint);
 
                 TempData["Message"] = "Account successfully removed.";
-                return RedirectToAction("Login");
+                return RedirectToAction("LoginPage");
             }
             catch (Exception ex)
             {
@@ -221,12 +171,45 @@ namespace OportoOlympics.Controllers
             }
         }
 
-        [HttpPost]
-        public IActionResult Logout()
+        // GET:
+        [HttpGet]
+        public async Task<IActionResult> GetGames()
         {
-            HttpContext.Session.Clear();
-            TempData["Message"] = "You have successfully logged out.";
-            return RedirectToAction("LoginPage");
+            var userEmail = HttpContext.Session.GetString("UserEmail");
+            var userName = HttpContext.Session.GetString("UserName");
+            var userId = HttpContext.Session.GetString("UserId");
+
+            if (string.IsNullOrEmpty(userEmail))
+            {
+                TempData["Error"] = "You must be logged in to access the Dashboard.";
+                return RedirectToAction("LoginPage", "Client");
+            }
+
+            try
+            {
+                var endpoint = "game/";
+
+                var result = await _apiService.GetAsync<GameResponse>(endpoint);
+
+                List<Game> games = new List<Game>();
+
+                if (result.Status == "OK" && result.Games != null)
+                {
+                    games = result.Games;
+                }
+
+                ViewData["UserName"] = userName;
+                ViewData["UserId"] = userId;
+                ViewData["Games"] = games;
+
+                return View("Dashboard");
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error loading dashboard: {ex.Message}";
+                ViewData["UserName"] = userName;
+                return View("Error");
+            }
         }
     }
 }

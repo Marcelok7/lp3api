@@ -1,0 +1,93 @@
+﻿@{
+    ViewData["Title"] = "Account";
+}
+
+<h2>Your Account</h2>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Update Your Password</h4>
+                </div>
+                <div class="card-body">
+                    <form id="updatePasswordForm" method="post" action="/Client/UpdatePassword" onsubmit="return validatePasswords()">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="_method" value="put" />
+
+                        <div class="form-group mb-3">
+                            <label for="newPassword">New Password</label>
+                            <input type="password" class="form-control" id="newPassword" name="newPassword" required />
+                        </div>
+                        <div class="form-group mb-3">
+                            <label for="confirmPassword">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required />
+                        </div>
+                        <div class="form-group text-center">
+                            <button type="submit" class="btn btn-primary">Change Password</button>
+                        </div>
+                    </form>
+
+                    <form id="deleteAccountForm" method="post" action="/Client/DeleteAccount" onsubmit="return confirmDeleteAccount()">
+                        @Html.AntiForgeryToken()
+                        <div class="form-group text-center mt-4">
+                            <button type="submit" class="btn btn-danger">Delete Account</button>
+                        </div>
+                    </form>
+
+                    @if (TempData["Message"] != null)
+                    {
+                        <div class="alert alert-success mt-3">@TempData["Message"]</div>
+                    }
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger mt-3">@TempData["Error"]</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Account Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete your account? This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteButton" onclick="submitDelete()">Delete Account</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function validatePasswords() {
+        var newPassword = document.getElementById("newPassword").value;
+        var confirmPassword = document.getElementById("confirmPassword").value;
+
+        if (newPassword !== confirmPassword) {
+            alert("Passwords do not match.");
+            return false;
+        }
+        return true;
+    }
+
+    function confirmDeleteAccount() {
+        event.preventDefault();
+
+        var modal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+        modal.show();
+    }
+
+    function submitDelete() {
+        document.getElementById('deleteAccountForm').submit();
+    }
+</script>

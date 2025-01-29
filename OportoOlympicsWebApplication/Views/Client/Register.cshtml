@@ -14,16 +14,16 @@
                 <div class="card-body">
                     <form asp-controller="Client" asp-action="Register" method="post">
                         <div class="form-group mb-3">
-                            <label for="nameString">Full Name</label>
-                            <input type="text" class="form-control" id="nameString" name="nameString" required />
+                            <label for="name">Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required />
                         </div>
                         <div class="form-group mb-3">
-                            <label for="emailString">Email Address</label>
-                            <input type="email" class="form-control" id="emailString" name="emailString" required />
+                            <label for="email">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" required />
                         </div>
                         <div class="form-group mb-3">
-                            <label for="passwordString">Password</label>
-                            <input type="password" class="form-control" id="passwordString" name="passwordString" required />
+                            <label for="password">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" required />
                         </div>
                         <div class="form-group text-center">
                             <button type="submit" class="btn btn-primary">Register</button>
@@ -31,10 +31,17 @@
                     </form>
                 </div>
             </div>
+
             @if (TempData["Message"] != null)
             {
-                <div class="alert alert-success mt-3">@TempData["Message"]</div>
+                <script>
+                    alert("@TempData["Message"]");
+                    setTimeout(() => {
+                        window.location.href = "/Client/Login";
+                    }, 3000);
+                </script>
             }
+
             @if (TempData["Error"] != null)
             {
                 <div class="alert alert-danger mt-3">@TempData["Error"]</div>

@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Http
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -19,12 +21,27 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/">Home</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Client/Register">Register</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/Client/Login">Login</a>
-                    </li>
+
+                    @if (Context.Session.GetString("UserEmail") != null)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" href="/Client/Account">Account</a>
+                        </li>
+                        <li class="nav-item">
+                            <form method="post" action="/Client/Logout" class="d-inline">
+                                <button type="submit" class="btn btn-link nav-link">Logout</button>
+                            </form>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" href="/Client/Register">Register</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/Client/LoginPage">Login</a>
+                        </li>
+                    }
                 </ul>
             </div>
         </div>
